@@ -23,7 +23,7 @@ const RegisterPage = () => {
     email: "",
     password: "",
     password_confirmation: "",
-    is_admin: false,
+    is_admin: true,
   });
   const [error, setError] = useState("");
   //const [showSuccessModal, setShowSuccessModal] = useState(false);

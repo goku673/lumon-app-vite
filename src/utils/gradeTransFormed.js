@@ -31,3 +31,22 @@ export const getTransformedGradeNameByDescription = (grades, description) => {
   const grade = grades.find((g) => g.description === description)
   return grade ? transformGradeName(grade.name) : ""
 }
+
+/**
+ * 🔥 Nueva función para transformación inversa
+ * Encuentra la descripción original a partir del valor transformado
+ * @param {Array} grades - Array de grados
+ * @param {string} transformedValue - Valor transformado (ej: "6to de secundaria")
+ * @returns {string} - Descripción original (ej: "Grado correspondiente a 6to de secundaria")
+ */
+export const getOriginalGradeDescriptionByTransformed = (grades, transformedValue) => {
+  if (!grades || !transformedValue) return ""
+
+  // Buscar el grado cuyo nombre transformado coincida con el valor buscado
+  const foundGrade = grades.find((grade) => {
+    const transformed = transformGradeName(grade.name)
+    return transformed === transformedValue
+  })
+
+  return foundGrade ? foundGrade.description : transformedValue
+}
