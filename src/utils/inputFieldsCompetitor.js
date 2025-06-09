@@ -1,3 +1,5 @@
+import { getTransformedGradeNameByDescription } from "./gradeTransFormed"
+
 export const inputFieldsCompetitor = [
   {
     groupLabel: "Nombre del Competidor:",
@@ -44,7 +46,7 @@ export const inputFieldsCompetitor = [
         name: "celular",
         type: "text",
         placeholder: "Ejemplo: 78952345",
-      }
+      },
     ],
   },
   {
@@ -61,9 +63,9 @@ export const inputFieldsCompetitor = [
         loadingKey: "isSchoolsLoading",
         errorKey: "isSchoolsError",
         loadingMessage: "Cargando colegios...",
-        errorMessage: "Error al cargar colegios."
-      }
-    ]
+        errorMessage: "Error al cargar colegios.",
+      },
+    ],
   },
   {
     groupLabel: "Información Académica:",
@@ -77,8 +79,10 @@ export const inputFieldsCompetitor = [
         errorKey: "isGradesError",
         loadingMessage: "Cargando cursos...",
         errorMessage: "Error al cargar cursos",
-        valueField: "description",
-        labelField: "description"
+        valueField: "description", // Mostrar la descripción
+        labelField: "description", // Mostrar la descripción
+        transformValue: true, // Bandera para indicar que necesita transformación
+        transformFunction: getTransformedGradeNameByDescription, // Función de transformación
       },
       {
         type: "select",
@@ -89,7 +93,7 @@ export const inputFieldsCompetitor = [
         loadingMessage: "Cargando departamentos...",
         errorMessage: "Error al cargar departamentos",
         valueField: "id",
-        labelField: "name"
+        labelField: "name",
       },
       {
         type: "select",
@@ -100,9 +104,9 @@ export const inputFieldsCompetitor = [
         loadingMessage: "Cargando provincias...",
         errorMessage: "Error al cargar provincias",
         valueField: "name",
-        labelField: "name"
-      }
-    ]
+        labelField: "name",
+      },
+    ],
   },
   {
     groupLabel: "Área:",
@@ -118,84 +122,100 @@ export const inputFieldsCompetitor = [
         loadingKey: "isAreaLevelGradesLoading",
         errorKey: "isAreaLevelGradesError",
         loadingMessage: "Cargando niveles...",
-        errorMessage: "Error al cargar niveles"
-      }
-    ]
-  }
-];
-
+        errorMessage: "Error al cargar niveles",
+      },
+    ],
+  },
+]
 
 export const renderField = (field, formData, handlers, dataProviders) => {
-  const { handleChange } = handlers;
-  const { 
-    handleSchoolSelect, 
-    handleSchoolRemove, 
-    handleGradeSelect, 
-    handleGradeRemove 
-  } = handlers;
-  
-  const data = field.dataKey ? dataProviders[field.dataKey] : null;
-  const isLoading = field.loadingKey ? dataProviders[field.loadingKey] : false;
-  const isError = field.errorKey ? dataProviders[field.errorKey] : false;
-  
+  const { handleChange } = handlers
+  const { handleSchoolSelect, handleSchoolRemove, handleGradeSelect, handleGradeRemove } = handlers
+
+  const data = field.dataKey ? dataProviders[field.dataKey] : null
+  const isLoading = field.loadingKey ? dataProviders[field.loadingKey] : false
+  const isError = field.errorKey ? dataProviders[field.errorKey] : false
+
   switch (field.type) {
-    case "selector":{ 
-    
+    case "selector": {
       if (isLoading) {
-        return { component: "Loading", message: field.loadingMessage || "Cargando..." };
+        return { component: "Loading", message: field.loadingMessage || "Cargando..." }
       }
       if (isError) {
-        return { component: "Error", message: field.errorMessage || "Error al cargar datos." };
+        return { component: "Error", message: field.errorMessage || "Error al cargar datos." }
       }
-      
-      let onSelect, onRemove;
+
+      let onSelect, onRemove
       if (field.name === "colegio") {
-        onSelect = handleSchoolSelect;
-        onRemove = handleSchoolRemove;
+        onSelect = handleSchoolSelect
+        onRemove = handleSchoolRemove
       } else if (field.name === "area_level_grades") {
-        onSelect = handleGradeSelect;
-        onRemove = handleGradeRemove;
+        onSelect = handleGradeSelect
+        onRemove = handleGradeRemove
       }
-      
+
       return {
         component: "Selector",
         props: {
           items: data || [],
-          selectedItems: field.name === "colegio" 
-            ? (formData[field.name] ? [formData[field.name]] : []) 
-            : (formData[field.name] || []),
+          selectedItems:
+            field.name === "colegio"
+              ? formData[field.name]
+                ? [formData[field.name]]
+                : []
+              : formData[field.name] || [],
           onSelect,
           onRemove,
           isMultiSelect: field.isMultiSelect,
           placeholder: field.placeholder || "Buscar...",
-          labelKey: field.labelKey || "name"
-        }
-      };
+          labelKey: field.labelKey || "name",
+        },
+      }
     }
     case "select": {
-      let options = [];
+      let options = []
       if (isLoading) {
-        options = [{ value: "", label: field.loadingMessage || "Cargando..." }];
+        options = [{ value: "", label: field.loadingMessage || "Cargando..." }]
       } else if (isError) {
-        options = [{ value: "", label: field.errorMessage || "Error al cargar datos" }];
+        options = [{ value: "", label: field.errorMessage || "Error al cargar datos" }]
       } else if (data) {
-        options = data.map(item => ({ 
-          value: item[field.valueField], 
-          label: item[field.labelField] 
-        }));
+        options = data.map((item) => ({
+          value: item[field.valueField],
+          label: item[field.labelField],
+        }))
       }
-      
+
+      // Crear un handler especial para campos que necesitan transformación
+      let customOnChange = handleChange
+      if (field.transformValue && field.transformFunction && data) {
+        customOnChange = (e) => {
+          const selectedDescription = e.target.value
+          const transformedValue = field.transformFunction(data, selectedDescription)
+
+          // Crear un evento sintético con el valor transformado
+          const syntheticEvent = {
+            target: {
+              name: field.name,
+              value: transformedValue,
+            },
+          }
+
+          handleChange(syntheticEvent)
+        }
+      }
+
       return {
         component: "Select",
         props: {
           name: field.name,
-          className: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500",
+          className:
+            "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500",
           value: formData[field.name] || "",
-          onChange: handleChange,
+          onChange: customOnChange,
           options,
-          required: true
-        }
-      };
+          required: true,
+        },
+      }
     }
     default:
       return {
@@ -207,9 +227,10 @@ export const renderField = (field, formData, handlers, dataProviders) => {
           pattern: field.pattern,
           value: formData[field.name] || "",
           onChange: handleChange,
-          className: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500",
-          required: true
-        }
-      };
+          className:
+            "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500",
+          required: true,
+        },
+      }
   }
-};
+}

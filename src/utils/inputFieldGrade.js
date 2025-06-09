@@ -1,4 +1,3 @@
-
 export const gradeFields = [
   {
     groupLabel: "Información del Grado",
@@ -10,7 +9,7 @@ export const gradeFields = [
         placeholder: "Nombre del grado",
         required: true,
         icon: "CategoryIcon",
-        label: "Nombre del Grado"
+        label: "Nombre del Grado",
       },
       {
         name: "description",
@@ -20,7 +19,7 @@ export const gradeFields = [
         rows: 3,
         maxWords: 10,
         icon: "DescriptionIcon",
-        label: "Descripción"
+        label: "Descripción",
       },
       {
         name: "price",
@@ -29,13 +28,18 @@ export const gradeFields = [
         required: true,
         step: "0.01",
         icon: "PaidIcon",
-        label: "Precio (Bs)"
-      }
-    ]
-  }
-];
+        label: "Precio (Bs)",
+      },
+    ],
+  },
+]
 
-export const renderField = (fieldConfig, formData, handleChange, handleDescriptionChange) => {
+// Corregir la función renderField para manejar handlers consistentemente
+export const renderField = (fieldConfig, formData, handlers ) => {
+  // Extraer handlers del objeto handlers
+  const handleChange = handlers?.handleChange
+  const handleDescriptionChange = handlers?.handleDescriptionChange
+
   switch (fieldConfig.type) {
     case "text":
     case "number":
@@ -48,10 +52,11 @@ export const renderField = (fieldConfig, formData, handleChange, handleDescripti
           onChange: handleChange,
           placeholder: fieldConfig.placeholder,
           required: fieldConfig.required,
-          className: "w-full px-4 py-3 rounded-md border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all",
-          step: fieldConfig.step
-        }
-      };
+          className:
+            "w-full px-4 py-3 rounded-md border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all",
+          step: fieldConfig.step,
+        },
+      }
     case "textarea":
       return {
         component: "Textarea",
@@ -59,14 +64,15 @@ export const renderField = (fieldConfig, formData, handleChange, handleDescripti
           name: fieldConfig.name,
           value: formData.description,
           onChange: handleDescriptionChange,
-          className: "w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all resize-none",
+          className:
+            "w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all resize-none",
           rows: fieldConfig.rows,
-          placeholder: fieldConfig.placeholder
+          placeholder: fieldConfig.placeholder,
         },
         wordCount: formData.wordCount,
-        maxWords: fieldConfig.maxWords
-      };
+        maxWords: fieldConfig.maxWords,
+      }
     default:
-      return null;
+      return null
   }
-};
+}

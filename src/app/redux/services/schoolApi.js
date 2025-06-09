@@ -19,5 +19,5 @@ export const schoolApi = createApi({
 });
 
 export const {
-    useGetSchoolsQuery,
+    useGetSchoolsQuery
 } = schoolApi;

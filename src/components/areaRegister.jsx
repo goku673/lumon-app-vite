@@ -185,7 +185,6 @@ const RegisterArea = () => {
         </div>
       </FormContent>
 
-      {/* Result Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -223,7 +222,6 @@ const RegisterArea = () => {
         )}
       </Modal>
 
-      {/* Loading Modal */}
       <Modal
         isOpen={isLoading}
         onClose={() => {}}

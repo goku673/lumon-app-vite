@@ -24,10 +24,24 @@ export const guardiansApi = createApi({
       }),
       invalidatesTags: ['Guardians']
     }),
+    postBulkInscriptionGuardian : builder.mutation({
+       query : (file) => {
+        const formData = new FormData();
+        formData.append('file',file);
+        return {
+          url: '/guardians/bulk-upload',
+          method: 'POST',
+          body: formData,
+        }
+       },
+
+       invalidatesTags: ['Guardians']
+    })
   })
 });
 
 export const {
     usePostIncriptionGuardianMutation,
     useGetGuardiansQuery,
+    usePostBulkInscriptionGuardianMutation,
 } = guardiansApi;

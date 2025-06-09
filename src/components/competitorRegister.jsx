@@ -1,34 +1,30 @@
-import { useState } from "react";
-import { useGetGradesQuery } from "../app/redux/services/register";
-import { useGetProvincesQuery } from "../app/redux/services/areaApi";
-import { useGetAreaLevelsGradesQuery } from "../app/redux/services/areaLevelsGrades";
-import { useGetDepartmentsQuery } from "../app/redux/services/areaApi";
-import { useGetSchoolsQuery } from "../app/redux/services/schoolApi";
-import SaveIcon from "@mui/icons-material/Save";
-import { ArrowBack } from "@mui/icons-material";
-import Button from "@mui/material/Button";
-import FormGroup from "./formGroup";
-import FormContainer from "../common/formContainer";
-import FormContent from "../common/formContent";
-import Title from "../common/title";
-import RenderComponent from "./RenderComponent";
-import { inputFieldsCompetitor, renderField } from "../utils/inputFieldsCompetitor";
-import { useSelector } from "react-redux";
-import Input from "../common/input";
-import Select from "../common/select";
-import Selector from "./selector";
-
+import { useState, useEffect } from "react"
+import { useGetSchoolsQuery } from "../app/redux/services/schoolApi"
+import { useGetGradesQuery } from "../app/redux/services/gradesApi"
+import { useGetDepartmentsQuery } from "../app/redux/services/areaApi"
+import { useGetProvincesQuery } from "../app/redux/services/areaApi"
+import { useGetOlympicByIdQuery } from "../app/redux/services/olympicsApi"
+import { inputFieldsCompetitor, renderField } from "../utils/inputFieldsCompetitor"
+import { transformCompetitorDataForBackend, validateTransformedData } from "../utils/dataTransFormed"
+import FormContainer from "../common/formContainer"
+import FormContent from "../common/formContent"
+import FormGroup from "./formGroup"
+import Button from "../common/button"
+import RenderComponent from "./RenderComponent"
+import { useSelector } from "react-redux"
 
 const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = [] }) => {
-  const selectedOlympic = useSelector((state) => state.olympic.selectedOlympic);
-  const { data: grades, isLoading: isGradesLoading, isError: isGradesError } = useGetGradesQuery();
-  const { data: areaLevelGrades, isLoading: isAreaLevelGradesLoading, isError: isAreaLevelGradesError } = useGetAreaLevelsGradesQuery();
-  const { data: schools, isLoading: isSchoolsLoading, isError: isSchoolsError } = useGetSchoolsQuery();
-  const { data: departments, isLoading: isDepartmentsLoading, isError: isDepartmentsError,  } = useGetDepartmentsQuery();
-  const { data: provinces, isLoading: isProvincesLoading, isError: isProvincesError } = useGetProvincesQuery();
+  const selectedOlympic = useSelector((state) => state.olympic.selectedOlympic)
 
+  // Obtener detalles de la olimpiada seleccionada (incluyendo sus áreas)
+  const {
+    data: olympicDetails,
+    isLoading: isOlympicLoading,
+    isError: isOlympicError,
+  } = useGetOlympicByIdQuery(selectedOlympic?.id, {
+    skip: !selectedOlympic?.id,
+  })
 
-  
   const [formData, setFormData] = useState({
     apellidoPaterno: "",
     apellidoMaterno: "",
@@ -42,174 +38,240 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
     departamento: "",
     provincia: "",
     area_level_grades: [],
-    wordCount: 0,
     ...initialData,
-  });
+  })
+
+  const [selectedSchool, setSelectedSchool] = useState(initialData.colegio || null)
+  const [selectedGrades, setSelectedGrades] = useState(initialData.area_level_grades || [])
+  const [validationErrors, setValidationErrors] = useState([])
+
+  // Queries para obtener datos (sin useGetAreaLevelsGradesQuery)
+  const { data: schools = [], isLoading: isSchoolsLoading, isError: isSchoolsError } = useGetSchoolsQuery()
+  const { data: grades = [], isLoading: isGradesLoading, isError: isGradesError } = useGetGradesQuery()
+  const {
+    data: departments = [],
+    isLoading: isDepartmentsLoading,
+    isError: isDepartmentsError,
+  } = useGetDepartmentsQuery()
+  const { data: provinces = [], isLoading: isProvincesLoading, isError: isProvincesError } = useGetProvincesQuery()
+
+  // Usar las áreas de la olimpiada seleccionada en lugar de todas las áreas
+  const flattenedGrades =
+    olympicDetails?.areas_levels_grades?.map((area) => ({
+      id: area.id,
+      name: `${area.area} - ${area.level} - ${area.grade}`,
+      area: area.area,
+      level: area.level,
+      grade: area.grade,
+      status: area.status,
+      // No tenemos price en los datos de la olimpiada, pero podemos agregarlo si es necesario
+    })) || []
+
+  // Filtrar solo las áreas activas
+  const activeGrades = flattenedGrades.filter((grade) => grade.status === "active")
+
+  const dataProviders = {
+    schools,
+    grades,
+    departments,
+    provinces,
+    flattenedGrades: activeGrades, // Usar solo las áreas activas de la olimpiada
+    isSchoolsLoading,
+    isGradesLoading,
+    isDepartmentsLoading,
+    isProvincesLoading,
+    isAreaLevelGradesLoading: isOlympicLoading, // Usar el loading de la olimpiada
+    isSchoolsError,
+    isGradesError,
+    isDepartmentsError,
+    isProvincesError,
+    isAreaLevelGradesError: isOlympicError, // Usar el error de la olimpiada
+  }
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+    if (validationErrors.length > 0) {
+      setValidationErrors([])
+    }
+  }
 
-  const handleDescriptionChange = (e) => {
-    const { value } = e.target;
-    const words = value.trim().split(/\s+/).filter(Boolean);
-    setFormData(prev => ({ 
-      ...prev, 
-      description: value,
-      wordCount: words.length
-    }));
-  };
+  const handleSchoolSelect = (school) => {
+    setSelectedSchool(school)
+    setFormData((prev) => ({ ...prev, colegio: school }))
+    if (validationErrors.length > 0) {
+      setValidationErrors([])
+    }
+  }
 
-  const handleSchoolSelect = school => setFormData(prev => ({ ...prev, colegio: school }));
-  const handleSchoolRemove = ()    => setFormData(prev => ({ ...prev, colegio: null }));
+  const handleSchoolRemove = () => {
+    setSelectedSchool(null)
+    setFormData((prev) => ({ ...prev, colegio: null }))
+  }
 
-  const flattenedGrades = areaLevelGrades?.flatMap((area) => 
-    area.levels.flatMap((level) => 
-      level.grades.map((grade) => ({
-        id: grade.area_level_grade_id,
-        name: `${area.name} - ${level.name} - ${grade.name}`,
-      }))
-    )
-  ) || [];
+  const handleGradeSelect = (grade) => {
+    const newSelectedGrades = [...selectedGrades, grade]
+    setSelectedGrades(newSelectedGrades)
+    setFormData((prev) => ({ ...prev, area_level_grades: newSelectedGrades }))
+    if (validationErrors.length > 0) {
+      setValidationErrors([])
+    }
+  }
 
-  const handleGradeSelect = grade => setFormData(prev => ({
-    ...prev,
-    area_level_grades: [...prev.area_level_grades, grade]
-  }));
+  const handleGradeRemove = (gradeToRemove) => {
+    const newSelectedGrades = selectedGrades.filter((grade) => grade.id !== gradeToRemove.id)
+    setSelectedGrades(newSelectedGrades)
+    setFormData((prev) => ({ ...prev, area_level_grades: newSelectedGrades }))
+  }
 
-  const handleGradeRemove = grade => setFormData(prev => ({
-    ...prev,
-    area_level_grades: prev.area_level_grades.filter(g => g.id !== grade.id)
-  }));
+  const handlers = {
+    handleChange,
+    handleSchoolSelect,
+    handleSchoolRemove,
+    handleGradeSelect,
+    handleGradeRemove,
+  }
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    const transformedData = {
-      name: formData.nombres,
-      last_name: `${formData.apellidoPaterno} ${formData.apellidoMaterno}`.trim(),
-      ci: formData.cedula,
-      birthday: formatDateForAPI(formData.fechaNacimiento),
-      phone: formData.celular,
-      email: formData.email,
-      school_id: formData.colegio?.id || null,
-      curso: formData.curso,
-      guardian_ids: guardians.map(guardian => guardian.id),
-      olympic_id: selectedOlympic?.id,
-      area_level_grade_ids: formData.area_level_grades.map(grade => grade.id)
-    };
-    
-    onSubmit(transformedData);
-  };
+    e.preventDefault()
 
-  const formatDateForAPI = (dateString) => {
-    if (!dateString) return "";
-    
-    const parts = dateString.split('/');
-    if (parts.length !== 3) return dateString; 
-    
-    return `${parts[2]}-${parts[1]}-${parts[0]}`;
-  };
+    // Validar que hay una olimpiada seleccionada
+    if (!selectedOlympic?.id) {
+      setValidationErrors(["Debe seleccionar una olimpiada antes de registrar un competidor"])
+      return
+    }
 
-  const renderComponent = (fieldConfig) => {
-    const handlers = {
-      handleChange,
-      handleDescriptionChange,
-      handleSchoolSelect,
-      handleSchoolRemove,
-      handleGradeSelect,
-      handleGradeRemove
-    };
-    
-    const dataProviders = {
-      grades,
-      isGradesLoading,
-      isGradesError,
-      schools,
-      isSchoolsLoading,
-      isSchoolsError,
-      departments,
-      isDepartmentsLoading,
-      isDepartmentsError,
-      provinces,
-      isProvincesLoading,
-      isProvincesError,
-      flattenedGrades,
-      isAreaLevelGradesLoading,
-      isAreaLevelGradesError
-    };
-    
-    if (typeof RenderComponent === 'function') {
-      try {
-        return (
-          <RenderComponent
-            fieldConfig={fieldConfig}
-            formData={formData}
-            handlers={handlers}
-            dataProviders={dataProviders}
-            renderField={renderField}
-          />
-        );
-      } catch (error) {
-        console.error("Error en RenderComponent:", error);
-      }
+    // Transformar los datos al formato del backend
+    const transformedData = transformCompetitorDataForBackend(formData, guardians, selectedOlympic?.id)
+
+    // Validar los datos transformados
+    const validation = validateTransformedData(transformedData)
+
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors)
+      console.error("Errores de validación:", validation.errors)
+      return
     }
-    
-    const { component, props, message } = renderField(fieldConfig, formData, handlers, dataProviders);
-    
-    switch (component) {
-      case "Selector":
-        return <Selector {...props} />;
-      case "Select":
-        return <Select {...props} />;
-      case "Input":
-        return <Input {...props} />;
-      case "Loading":
-        return <p>{message || "Cargando..."}</p>;
-      case "Error":
-        return <p>{message || "Error al cargar datos"}</p>;
-      default:
-        return null;
+
+    console.log("=== DATOS ORIGINALES DEL FORMULARIO ===")
+    console.log(formData)
+    console.log("\n=== DATOS TRANSFORMADOS PARA EL BACKEND ===")
+    console.log(transformedData)
+    console.log("\n=== ÁREAS DISPONIBLES DE LA OLIMPIADA ===")
+    console.log("Olimpiada:", selectedOlympic?.name)
+    console.log("Áreas activas:", activeGrades)
+
+    // Enviar los datos transformados
+    onSubmit(transformedData)
+  }
+
+  useEffect(() => {
+    if (formData.curso) {
+      console.log("Curso seleccionado (transformado):", formData.curso)
     }
-  };
+  }, [formData.curso])
+
+  // Mostrar mensaje si no hay olimpiada seleccionada
+  if (!selectedOlympic?.id) {
+    return (
+      <FormContainer className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8 border border-gray-100">
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold mb-4 text-gray-800">Selecciona una Olimpiada</h2>
+          <p className="text-gray-600 mb-6">Debes seleccionar una olimpiada antes de poder registrar un competidor.</p>
+          <Button
+            type="button"
+            onClick={onBack}
+            className="bg-[#0f2e5a] hover:bg-[#1a4a7a] text-white px-6 py-3 rounded-md font-medium transition-colors duration-200"
+          >
+            Volver a Seleccionar Olimpiada
+          </Button>
+        </div>
+      </FormContainer>
+    )
+  }
 
   return (
-    <FormContainer>
-      <Title title="DATOS DEL COMPETIDOR" />
+    <FormContainer className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8 border border-gray-100">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 border-b pb-4">Registro de Competidor</h2>
 
-      <FormContent onSubmit={handleSubmit}>
-        {inputFieldsCompetitor.map((group, idx) => (
-          <FormGroup key={idx} label={group.groupLabel}>
-            <div className={group.layout || ""}>
-              {group.fields.map((field, fieldIdx) => (
-                <div key={`${field.name || field.type}-${fieldIdx}`}>
-                  {renderComponent(field)}
+        {/* Información de la olimpiada seleccionada */}
+        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h3 className="font-semibold text-blue-800">Olimpiada Seleccionada:</h3>
+          <p className="text-blue-700">{selectedOlympic.name}</p>
+          <p className="text-sm text-blue-600">{activeGrades.length} áreas disponibles para inscripción</p>
+        </div>
+      </div>
+
+      {/* Mostrar errores de validación */}
+      {validationErrors.length > 0 && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+          <h3 className="text-red-800 font-semibold mb-2">Errores de validación:</h3>
+          <ul className="list-disc list-inside text-red-700">
+            {validationErrors.map((error, index) => (
+              <li key={index}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Mostrar mensaje si no hay áreas disponibles */}
+      {olympicDetails && activeGrades.length === 0 && (
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+          <h3 className="text-yellow-800 font-semibold mb-2">Sin áreas disponibles</h3>
+          <p className="text-yellow-700">Esta olimpiada no tiene áreas activas disponibles para inscripción.</p>
+        </div>
+      )}
+
+      <FormContent onSubmit={handleSubmit} className="space-y-6">
+        {inputFieldsCompetitor.map((group, groupIndex) => (
+          <FormGroup key={groupIndex} label={group.groupLabel} className="mb-6">
+            <div className={group.layout || "space-y-4"}>
+              {group.fields.map((field, fieldIndex) => (
+                <div key={`${field.name}-${fieldIndex}`}>
+                  <RenderComponent
+                    fieldConfig={field}
+                    formData={formData}
+                    handlers={handlers}
+                    dataProviders={dataProviders}
+                    renderField={renderField}
+                  />
                 </div>
               ))}
             </div>
           </FormGroup>
         ))}
 
-        <div className="flex justify-between mt-6 border-t border-gray-300 pt-4">
-            <Button 
-              type="button" 
-              onClick={onBack} 
-              className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-md flex items-center justify-center mr-4"
-            >
-              <ArrowBack className="mr-2" />
-              Volver
-            </Button>
-            <Button 
-              type="submit" 
-              className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-md flex items-center justify-center"
-            >
-              <SaveIcon className="mr-2" />
-              Guardar los datos de inscripción
-            </Button>
+        <div className="flex justify-between pt-4 border-t">
+          <Button
+            type="button"
+            onClick={onBack}
+            className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-md font-medium transition-colors duration-200"
+          >
+            Atrás
+          </Button>
+          <Button
+            type="submit"
+            className="bg-[#0f2e5a] hover:bg-[#1a4a7a] text-white px-6 py-3 rounded-md font-medium transition-colors duration-200"
+            disabled={activeGrades.length === 0}
+          >
+            Registrar Competidor
+          </Button>
         </div>
       </FormContent>
-    </FormContainer>
-  );
-};
 
-export default CompetitorRegister;
+      {/* Mostrar datos actuales para debugging */}
+      <div className="mt-8 p-4 bg-gray-100 rounded-md">
+        <h3 className="font-bold mb-2">Vista previa de datos transformados:</h3>
+        <pre className="text-sm overflow-auto">
+          {JSON.stringify(transformCompetitorDataForBackend(formData, guardians, selectedOlympic?.id), null, 2)}
+        </pre>
+
+        <h3 className="font-bold mb-2 mt-4">Áreas disponibles de la olimpiada:</h3>
+        <pre className="text-sm overflow-auto">{JSON.stringify(activeGrades, null, 2)}</pre>
+      </div>
+    </FormContainer>
+  )
+}
+
+export default CompetitorRegister

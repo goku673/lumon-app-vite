@@ -1,6 +1,3 @@
-import CategoryIcon from "@mui/icons-material/Category"
-import DescriptionIcon from "@mui/icons-material/Description"
-
 export const levelFields = [
   {
     groupLabel: "Información del Nivel",
@@ -13,7 +10,8 @@ export const levelFields = [
         placeholder: "Nombre del nivel",
         required: true,
         icon: "CategoryIcon",
-        className: "w-full px-4 py-3 rounded-md border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+        className:
+          "w-full px-4 py-3 rounded-md border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all",
       },
       {
         name: "description",
@@ -24,13 +22,19 @@ export const levelFields = [
         icon: "DescriptionIcon",
         maxWords: 10,
         rows: 3,
-        className: "w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-      }
-    ]
-  }
+        className:
+          "w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none",
+      },
+    ],
+  },
 ]
 
-export const renderField = (fieldConfig, formData, handleChange, handleDescriptionChange) => {
+// Corregir la función renderField para manejar handlers consistentemente
+export const renderField = (fieldConfig, formData, handlers) => {
+  // Extraer handlers del objeto handlers
+  const handleChange = handlers?.handleChange
+  const handleDescriptionChange = handlers?.handleDescriptionChange
+
   switch (fieldConfig.type) {
     case "text":
       return {
@@ -42,8 +46,8 @@ export const renderField = (fieldConfig, formData, handleChange, handleDescripti
           onChange: handleChange,
           placeholder: fieldConfig.placeholder,
           required: fieldConfig.required,
-          className: fieldConfig.className
-        }
+          className: fieldConfig.className,
+        },
       }
     case "textarea":
       return {
@@ -55,10 +59,10 @@ export const renderField = (fieldConfig, formData, handleChange, handleDescripti
           placeholder: fieldConfig.placeholder,
           required: fieldConfig.required,
           className: fieldConfig.className,
-          rows: fieldConfig.rows
+          rows: fieldConfig.rows,
         },
         wordCount: formData.wordCount,
-        maxWords: fieldConfig.maxWords
+        maxWords: fieldConfig.maxWords,
       }
     default:
       return { component: null, props: {} }
