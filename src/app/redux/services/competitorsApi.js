@@ -113,7 +113,7 @@ export const competitorsApi = createApi({
     }),
 
     // POST /competitors/bulk-upload (no /competitors/import)
-    importCompetitors: builder.mutation({
+    bulkUploadCompetitors: builder.mutation({
       query: (formData) => ({
         url: "competitors/bulk-upload",
         method: "POST",
@@ -140,7 +140,7 @@ export const {
   usePostInscriptionCompetitorMutation,
   useUpdateCompetitorMutation,
   useDeleteCompetitorMutation,
-  useImportCompetitorsMutation,
+  useBulkUploadCompetitorsMutation,
 
   // Lazy queries
   useLazyGetCompetitorsQuery,

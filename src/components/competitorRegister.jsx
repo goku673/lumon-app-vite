@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import { useGetSchoolsQuery } from "../app/redux/services/schoolApi"
 import { useGetGradesQuery } from "../app/redux/services/gradesApi"
@@ -45,7 +47,7 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
   const [selectedGrades, setSelectedGrades] = useState(initialData.area_level_grades || [])
   const [validationErrors, setValidationErrors] = useState([])
 
-  // Queries para obtener datos (sin useGetAreaLevelsGradesQuery)
+  // Queries para obtener datos
   const { data: schools = [], isLoading: isSchoolsLoading, isError: isSchoolsError } = useGetSchoolsQuery()
   const { data: grades = [], isLoading: isGradesLoading, isError: isGradesError } = useGetGradesQuery()
   const {
@@ -64,7 +66,6 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
       level: area.level,
       grade: area.grade,
       status: area.status,
-      // No tenemos price en los datos de la olimpiada, pero podemos agregarlo si es necesario
     })) || []
 
   // Filtrar solo las áreas activas
@@ -75,28 +76,38 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
     grades,
     departments,
     provinces,
-    flattenedGrades: activeGrades, // Usar solo las áreas activas de la olimpiada
+    flattenedGrades: activeGrades,
     isSchoolsLoading,
     isGradesLoading,
     isDepartmentsLoading,
     isProvincesLoading,
-    isAreaLevelGradesLoading: isOlympicLoading, // Usar el loading de la olimpiada
+    isAreaLevelGradesLoading: isOlympicLoading,
     isSchoolsError,
     isGradesError,
     isDepartmentsError,
     isProvincesError,
-    isAreaLevelGradesError: isOlympicError, // Usar el error de la olimpiada
+    isAreaLevelGradesError: isOlympicError,
   }
 
+  // 🔥 Función mejorada para manejar cambios en el formulario
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+
+    
+
+    setFormData((prev) => {
+      const newData = { ...prev, [name]: value }
+      
+      return newData
+    })
+
     if (validationErrors.length > 0) {
       setValidationErrors([])
     }
   }
 
   const handleSchoolSelect = (school) => {
+    
     setSelectedSchool(school)
     setFormData((prev) => ({ ...prev, colegio: school }))
     if (validationErrors.length > 0) {
@@ -110,6 +121,7 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
   }
 
   const handleGradeSelect = (grade) => {
+   
     const newSelectedGrades = [...selectedGrades, grade]
     setSelectedGrades(newSelectedGrades)
     setFormData((prev) => ({ ...prev, area_level_grades: newSelectedGrades }))
@@ -119,6 +131,7 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
   }
 
   const handleGradeRemove = (gradeToRemove) => {
+   
     const newSelectedGrades = selectedGrades.filter((grade) => grade.id !== gradeToRemove.id)
     setSelectedGrades(newSelectedGrades)
     setFormData((prev) => ({ ...prev, area_level_grades: newSelectedGrades }))
@@ -153,23 +166,26 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
       return
     }
 
-    console.log("=== DATOS ORIGINALES DEL FORMULARIO ===")
-    console.log(formData)
-    console.log("\n=== DATOS TRANSFORMADOS PARA EL BACKEND ===")
-    console.log(transformedData)
-    console.log("\n=== ÁREAS DISPONIBLES DE LA OLIMPIADA ===")
-    console.log("Olimpiada:", selectedOlympic?.name)
-    console.log("Áreas activas:", activeGrades)
+  
 
     // Enviar los datos transformados
     onSubmit(transformedData)
   }
 
+  //  Effect para debug del curso
   useEffect(() => {
-    if (formData.curso) {
-      console.log("Curso seleccionado (transformado):", formData.curso)
-    }
+    console.log("🎓 Curso actualizado en formData:", formData.curso)
   }, [formData.curso])
+
+  //  Effect para sincronizar estados cuando cambian los datos iniciales
+  useEffect(() => {
+    if (initialData.colegio && !selectedSchool) {
+      setSelectedSchool(initialData.colegio)
+    }
+    if (initialData.area_level_grades && selectedGrades.length === 0) {
+      setSelectedGrades(initialData.area_level_grades)
+    }
+  }, [initialData, selectedSchool, selectedGrades.length])
 
   // Mostrar mensaje si no hay olimpiada seleccionada
   if (!selectedOlympic?.id) {
@@ -260,15 +276,26 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
         </div>
       </FormContent>
 
-      {/* Mostrar datos actuales para debugging */}
+      {/* 🔥 Debug panel mejorado */}
       <div className="mt-8 p-4 bg-gray-100 rounded-md">
-        <h3 className="font-bold mb-2">Vista previa de datos transformados:</h3>
-        <pre className="text-sm overflow-auto">
-          {JSON.stringify(transformCompetitorDataForBackend(formData, guardians, selectedOlympic?.id), null, 2)}
-        </pre>
+        <h3 className="font-bold mb-2">🐛 Debug - Estado actual del formulario:</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <h4 className="font-semibold">Curso seleccionado:</h4>
+            <p className="bg-white p-2 rounded border">{formData.curso || "No seleccionado"}</p>
+          </div>
+          <div>
+            <h4 className="font-semibold">Áreas seleccionadas:</h4>
+            <p className="bg-white p-2 rounded border">{selectedGrades.length} área(s)</p>
+          </div>
+        </div>
 
-        <h3 className="font-bold mb-2 mt-4">Áreas disponibles de la olimpiada:</h3>
-        <pre className="text-sm overflow-auto">{JSON.stringify(activeGrades, null, 2)}</pre>
+        <details className="mt-4">
+          <summary className="cursor-pointer font-semibold">Ver datos completos</summary>
+          <pre className="text-xs overflow-auto mt-2 bg-white p-2 rounded border">
+            {JSON.stringify({ formData, selectedGrades, activeGrades: activeGrades.length }, null, 2)}
+          </pre>
+        </details>
       </div>
     </FormContainer>
   )

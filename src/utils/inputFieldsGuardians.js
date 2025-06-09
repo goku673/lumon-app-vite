@@ -87,20 +87,20 @@ export const completeGuardianFields = [
       }
     ]
   },
-  {
-    groupLabel: "Comprobante de pago:",
-    fields: [
-      {
-        type: "file",
-        name: "comprobantePago",
-        accept: ".pdf,.jpg,.jpeg,.png",
-        label: "Subir archivo"
-      }
-    ]
-  }
+  // {
+  //   groupLabel: "Comprobante de pago:",
+  //   fields: [
+  //     {
+  //       type: "file",
+  //       name: "comprobantePago",
+  //       accept: ".pdf,.jpg,.jpeg,.png",
+  //       label: "Subir archivo"
+  //     }
+  //   ]
+  // }
 ];
 
-// Función auxiliar para renderizar diferentes tipos de campos
+
 export const renderField = (field, formData, handleChange, customHandlers = {}) => {
   const { handleGuardianSelect, handleGuardianRemove } = customHandlers;
   
@@ -109,7 +109,7 @@ export const renderField = (field, formData, handleChange, customHandlers = {}) 
       return {
         component: "Selector",
         props: {
-          items: field.items || [], // Se debe pasar desde el componente
+          items: field.items || [], 
           selectedItems: formData[field.selectedItemsKey] || [],
           onSelect: handleGuardianSelect,
           onRemove: handleGuardianRemove,

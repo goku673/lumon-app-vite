@@ -1,4 +1,4 @@
-import { getTransformedGradeNameByDescription } from "./gradeTransFormed"
+import { getTransformedGradeNameByDescription, getOriginalGradeDescriptionByTransformed } from "./gradeTransFormed"
 
 export const inputFieldsCompetitor = [
   {
@@ -79,10 +79,11 @@ export const inputFieldsCompetitor = [
         errorKey: "isGradesError",
         loadingMessage: "Cargando cursos...",
         errorMessage: "Error al cargar cursos",
-        valueField: "description", // Mostrar la descripción
-        labelField: "description", // Mostrar la descripción
-        transformValue: true, // Bandera para indicar que necesita transformación
-        transformFunction: getTransformedGradeNameByDescription, // Función de transformación
+        valueField: "description", 
+        labelField: "description", 
+        transformValue: true, 
+        transformFunction: getTransformedGradeNameByDescription, 
+        reverseTransformFunction: getOriginalGradeDescriptionByTransformed, 
       },
       {
         type: "select",
@@ -179,20 +180,39 @@ export const renderField = (field, formData, handlers, dataProviders) => {
       } else if (isError) {
         options = [{ value: "", label: field.errorMessage || "Error al cargar datos" }]
       } else if (data) {
-        options = data.map((item) => ({
-          value: item[field.valueField],
-          label: item[field.labelField],
-        }))
+        // 🔥 Para el campo curso, crear opciones con valores transformados
+        if (field.name === "curso" && field.transformValue && field.transformFunction) {
+          options = data.map((item) => {
+            const originalDescription = item[field.valueField]
+            const transformedValue = field.transformFunction(data, originalDescription)
+
+            return {
+              value: transformedValue, // 🔥 Usar valor transformado como value
+              label: transformedValue, // 🔥 Mostrar valor transformado como label
+              originalDescription: originalDescription, // Guardar referencia original
+            }
+          })
+        } else {
+          // Para otros campos, usar la lógica normal
+          options = data.map((item) => ({
+            value: item[field.valueField],
+            label: item[field.labelField],
+          }))
+        }
       }
 
-      // Crear un handler especial para campos que necesitan transformación
-      let customOnChange = handleChange
-      if (field.transformValue && field.transformFunction && data) {
-        customOnChange = (e) => {
-          const selectedDescription = e.target.value
-          const transformedValue = field.transformFunction(data, selectedDescription)
+      // 🔥 Para campos con transformación, usar directamente el valor del formData
+      const displayValue = formData[field.name] || ""
 
-          // Crear un evento sintético con el valor transformado
+      // 🔥 Handler simplificado - no necesita transformación adicional para curso
+      let customOnChange = handleChange
+
+      // Para otros campos que puedan necesitar transformación en el futuro
+      if (field.transformValue && field.transformFunction && data && field.name !== "curso") {
+        customOnChange = (e) => {
+          const selectedValue = e.target.value
+          const transformedValue = field.transformFunction(data, selectedValue)
+
           const syntheticEvent = {
             target: {
               name: field.name,
@@ -210,7 +230,7 @@ export const renderField = (field, formData, handlers, dataProviders) => {
           name: field.name,
           className:
             "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500",
-          value: formData[field.name] || "",
+          value: displayValue,
           onChange: customOnChange,
           options,
           required: true,
