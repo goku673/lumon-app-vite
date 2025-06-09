@@ -309,7 +309,7 @@ const Incription = () => {
       console.log("Datos transformados:", data)
       console.log("Olimpiada seleccionada:", selectedOlympic)
 
-      // Enviar TODOS los campos al CompetitorController
+      // USAR EL FLUJO UNIFICADO - Enviar TODOS los campos al CompetitorController
       const competitorData = {
         name: data.name,
         last_name: data.last_name,
@@ -320,8 +320,8 @@ const Incription = () => {
         school_id: data.school_id,
         curso: data.curso,
         guardian_ids: data.guardian_ids,
-        olympic_id: selectedOlympic.id, //  olympic_id
-        area_level_grade_ids: data.area_level_grade_ids, // area_level_grade_ids
+        olympic_id: selectedOlympic.id, // INCLUIR olympic_id
+        area_level_grade_ids: data.area_level_grade_ids, // INCLUIR area_level_grade_ids
       }
 
       console.log("=== DATOS COMPLETOS PARA EL BACKEND ===")

@@ -10,7 +10,6 @@ import { useGetUserQuery } from "../app/redux/services/authApi";
 import UserProfileMobile from "./userProfileMovil";
 import UserProfile from "./userProfile";
 import UserLoadingSkeleton from "../common/userLoading";
-import Logo from "../assets/logo.png"
 
 const TopMenu = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -47,7 +46,7 @@ const TopMenu = () => {
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
               <img 
-                src={Logo} 
+                src="/logo.svg" 
                 alt="SanSi Logo" 
                 width={120} 
                 height={60} 

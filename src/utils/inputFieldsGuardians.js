@@ -87,17 +87,17 @@ export const completeGuardianFields = [
       }
     ]
   },
-  // {
-  //   groupLabel: "Comprobante de pago:",
-  //   fields: [
-  //     {
-  //       type: "file",
-  //       name: "comprobantePago",
-  //       accept: ".pdf,.jpg,.jpeg,.png",
-  //       label: "Subir archivo"
-  //     }
-  //   ]
-  // }
+  {
+    groupLabel: "Comprobante de pago:",
+    fields: [
+      {
+        type: "file",
+        name: "comprobantePago",
+        accept: ".pdf,.jpg,.jpeg,.png",
+        label: "Subir archivo"
+      }
+    ]
+  }
 ];
 
 // Función auxiliar para renderizar diferentes tipos de campos
