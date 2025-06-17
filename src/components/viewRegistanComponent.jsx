@@ -1,16 +1,15 @@
-import Input from "../common/input";
-import Button from "../common/button";
-import SearchIcon from "@mui/icons-material/Search";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import Table from "./table";
-import Modal from "./modal/modal";
-import Title from "../common/title";
-import Text from "../common/text";
-import TableExporter from "./tableExporter";
-import FormGroup from "./formGroup";
-import Selector from "./selector";
-import Select from "../common/select";
+import Input from "../common/input"
+import SearchIcon from "@mui/icons-material/Search"
+import Table from "./table"
+import Modal from "./modal/modal"
+import Title from "../common/title"
+import Text from "../common/text"
+import TableExporter from "./tableExporter"
+import FormGroup from "./formGroup"
+import Selector from "./selector"
+import Select from "../common/select"
+import TableLoadingSkeleton from "../common/tableLoadingSkeleton"
+
 export default function ViewRegistrantComponent(props) {
   const {
     notification,
@@ -35,16 +34,17 @@ export default function ViewRegistrantComponent(props) {
     grades,
     confirmEdit,
     transformDataForExport,
-    // openEditModal,
-    // openDeleteModal,
-  } = props;
+    isCompetitorsLoading, // Nueva prop para el estado de carga
+  } = props
 
   return (
     <div className="min-h-screen">
       {notification.show && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg ${
-          notification.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-        }`}>
+        <div
+          className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg ${
+            notification.type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
+          }`}
+        >
           {notification.message}
         </div>
       )}
@@ -56,7 +56,7 @@ export default function ViewRegistrantComponent(props) {
             <Input
               type="text"
               placeholder="Buscar por nombre, carnet, email o colegio"
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2  bg-white"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 bg-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -64,8 +64,8 @@ export default function ViewRegistrantComponent(props) {
               <SearchIcon className="text-gray-400" />
             </div>
           </div>
-          
-          {filteredData.length > 0 && (
+
+          {!isCompetitorsLoading && filteredData.length > 0 && (
             <TableExporter
               data={filteredData}
               transformData={transformDataForExport}
@@ -77,7 +77,11 @@ export default function ViewRegistrantComponent(props) {
           )}
         </div>
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <Table columns={columns} data={filteredData} />
+          {isCompetitorsLoading ? (
+            <TableLoadingSkeleton rows={10} cols={columns.length > 0 ? columns.length : 7} />
+          ) : (
+            <Table columns={columns} data={filteredData} />
+          )}
         </div>
 
         <Modal
@@ -111,7 +115,7 @@ export default function ViewRegistrantComponent(props) {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </FormGroup>
-            
+
             <FormGroup label="Apellido:">
               <Input
                 name="last_name"
@@ -120,7 +124,7 @@ export default function ViewRegistrantComponent(props) {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </FormGroup>
-            
+
             <FormGroup label="Email:">
               <Input
                 name="email"
@@ -129,9 +133,9 @@ export default function ViewRegistrantComponent(props) {
                 disabled
                 className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
               />
-              <Text text="El email no se puede modificar" className="text-xs text-gray-500 mt-1" />
+              <Text text="El email no se puede modificar" className="text-xs text-gray-500 mt-1 text-left" />
             </FormGroup>
-            
+
             <FormGroup label="Teléfono:">
               <Input
                 name="phone"
@@ -140,12 +144,12 @@ export default function ViewRegistrantComponent(props) {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </FormGroup>
-            
+
             <FormGroup label="Seleccione Colegio:">
               {isSchoolsLoading ? (
-                <p>Cargando colegios...</p>
+                <Text text="Cargando colegios..." className="text-sm text-gray-500 text-left" />
               ) : isSchoolsError ? (
-                <p>Error al cargar colegios.</p>
+                <Text text="Error al cargar colegios." className="text-sm text-red-500 text-left" />
               ) : (
                 <Selector
                   items={schools}
@@ -158,16 +162,16 @@ export default function ViewRegistrantComponent(props) {
                 />
               )}
             </FormGroup>
-            
+
             <FormGroup label="Curso:">
               <Select
                 name="curso"
                 options={
-                  isGradesLoading 
-                    ? [{ value: "", label: "Cargando cursos..." }] 
-                    : isGradesError 
-                        ? [{ value: "", label: "Error al cargar cursos" }] 
-                        : grades?.map(g => ({ value: g.description, label: g.description })) || []
+                  isGradesLoading
+                    ? [{ value: "", label: "Cargando cursos..." }]
+                    : isGradesError
+                      ? [{ value: "", label: "Error al cargar cursos" }]
+                      : grades?.map((g) => ({ value: g.description, label: g.description })) || []
                 }
                 value={editFormData.curso}
                 onChange={handleEditChange}
@@ -178,5 +182,5 @@ export default function ViewRegistrantComponent(props) {
         </Modal>
       </div>
     </div>
-  );
+  )
 }

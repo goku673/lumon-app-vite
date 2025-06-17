@@ -1,4 +1,7 @@
+"use client"
+
 import OlympicsList from "./olympicList"
+// ✅ CAMBIO: Renombrar el componente Text para evitar conflictos
 import Title from "../common/title"
 import GuardianRegister from "./guardientRegister"
 import CompetitorRegister from "./competitorRegister"
@@ -12,7 +15,7 @@ import { useGeneratePaymentBySchoolMutation } from "../app/redux/services/paymen
 import BulkUploader from "../app/exel/bulkUPloader"
 import { useState } from "react"
 
-//  Plantilla para tutores
+// Plantilla para tutores
 const templateHeadersGuardians = ["name", "last_name", "email", "ci", "phone", "type"]
 const templateExampleGuardians = ["Juan", "Pérez", "juan@mail.com", "12345678", "71234567", "padre"]
 
@@ -60,7 +63,6 @@ const InscriptionForm = ({
   closeModal,
   // Props para el flujo de pago
   paymentFlow,
-  onGeneratePayment,
   onValidatePayment,
   onPaymentFileSelect,
   onResetFlow,
@@ -75,7 +77,6 @@ const InscriptionForm = ({
   const [showBulkPaymentModal, setShowBulkPaymentModal] = useState(false)
   const [isProcessingBulk, setIsProcessingBulk] = useState(false)
 
-  
   const handleBulkCompetitorsUpload = async (formData) => {
     setIsProcessingBulk(true)
 
@@ -117,7 +118,7 @@ const InscriptionForm = ({
 
       return result
     } catch (error) {
-      console.error(" Error en carga masiva:", error)
+      console.error("Error en carga masiva:", error)
       setBulkUploadResult({
         total_filas_creadas: 0,
         total_errores: 1,
@@ -130,7 +131,6 @@ const InscriptionForm = ({
     }
   }
 
-  // Función auxiliar para obtener school_id del FormData
   const getSchoolIdFromFormData = (formData) => {
     // Si necesitas extraer el school_id del archivo Excel, implementar aquí
     // Por ahora retorna null para usar el selectedOlympic
@@ -156,7 +156,6 @@ const InscriptionForm = ({
             uploadLabel="Subir Competidores"
             downloadLabel="Descargar Plantilla Competidores"
             disabled={isProcessingBulk}
-            
           />
 
           {/* Información sobre el Excel */}
@@ -244,11 +243,13 @@ const InscriptionForm = ({
         >
           <div className="flex flex-col items-center justify-center py-4">
             <CircularProgress color="error" className="mb-4" />
-            <p>{isProcessingBulk ? "Procesando competidores y generando boleta de pago..." : loadingModal.message}</p>
+            {/* ✅ CAMBIO: Usar elemento HTML nativo en lugar de componente Text */}
+            <p className="text-gray-700">
+              {isProcessingBulk ? "Procesando competidores y generando boleta de pago..." : loadingModal.message}
+            </p>
           </div>
         </Modal>
 
-  
         <Modal
           isOpen={modal.isOpen}
           onClose={closeModal}
@@ -260,7 +261,8 @@ const InscriptionForm = ({
           onSecondaryClick={modal.onSecondaryClick}
           showSecondaryButton={modal.showSecondaryButton}
         >
-          <p>{modal.message}</p>
+          {/* ✅ CAMBIO: Usar elemento HTML nativo */}
+          <p className="text-gray-700">{modal.message}</p>
         </Modal>
 
         <Modal
@@ -306,7 +308,6 @@ const InscriptionForm = ({
           onFileSelect={onPaymentFileSelect}
         />
 
-       
         <PaymentModal
           isOpen={paymentFlow?.showPaymentModal}
           paymentOrder={paymentFlow?.paymentOrder}

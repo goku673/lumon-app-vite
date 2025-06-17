@@ -38,7 +38,7 @@ const RegisterOlympic = () => {
   const [modalMessage, setModalMessage] = useState("")
   const [wordCount, setWordCount] = useState(0)
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedItems, setSelectedItems] = useState([]) // Array de objetos completos para mostrar
+  const [selectedItems, setSelectedItems] = useState([]) 
 
   const [postIncriptionOlympics, { isLoading }] = usePostIncriptionOlympicsMutation()
   const {
@@ -61,7 +61,7 @@ const RegisterOlympic = () => {
     ),
   )
 
-  // Filtrar elementos basado en el término de búsqueda
+  
   const filteredItems = flattenedItems.filter((item) =>
     item.displayName.toLowerCase().includes(searchTerm.toLowerCase()),
   )
@@ -176,7 +176,8 @@ const RegisterOlympic = () => {
     <FormContainer className="max-w-4xl mx-auto rounded-xl shadow-md p-6 border border-gray-100">
       <div className="flex items-center justify-center mb-8 bg-blue-50 py-4 rounded-lg">
         <EmojiEventsIcon className="text-[#0f2e5a] mr-2" fontSize="large" />
-        <Title title="Registro de Olimpiada" className="text-[#0f2e5a]" />
+        <h1 className="text-2xl font-bold text-[#0f2e5a]">Registrar Nueva Olimpiada</h1>
+        {/* <Title title="Registro de Olimpiada" className="text-[#0f2e5a]" /> */}
       </div>
 
       <FormContent onSubmit={handleSubmit} className="space-y-6">

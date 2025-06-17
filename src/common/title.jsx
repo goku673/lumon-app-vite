@@ -1,11 +1,6 @@
-import React from 'react'
-
-const Title = ({title, className}) => {
-  return (
-    <div className={`text-2xl font-bold text-center ${className}`}>
-      {title}
-    </div>
-  )
+const Title = ({ children, className, as = "h3" }) => {
+  const Component = as
+  return <Component className={`font-bold ${className}`}>{children}</Component>
 }
 
 export default Title;

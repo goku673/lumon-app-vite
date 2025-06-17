@@ -55,7 +55,7 @@ const TabsRegister = () => {
     { accessorKey: "nivel", header: "Nivel", cell: info => info.getValue() },
     { accessorKey: "grado", header: "Grado", cell: info => info.getValue() },
     { accessorKey: "costo", header: "Costo (Bs)", cell: info => info.getValue() },
-    { accessorKey: "description", header: "Descripción", cell: info => info.getValue() },
+    // { accessorKey: "description", header: "Descripción", cell: info => info.getValue() },
     {
       id: "actions",
       header: "Acciones",

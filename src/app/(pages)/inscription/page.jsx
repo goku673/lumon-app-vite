@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { usePostInscriptionCompetitorMutation } from "../../redux/services/competitorsApi"
 import { usePostIncriptionGuardianMutation, useGetGuardiansQuery } from "../../redux/services/guardiansApi"
@@ -8,7 +6,6 @@ import {
   useValidatePaymentFromImageMutation,
 } from "../../redux/services/paymentOrdersApi"
 import { useSelector } from "react-redux"
-import useExcelProcessor from "../../services/exel/ExcelProcessor"
 import InscriptionForm from "../../../components/InscriptionForm"
 import AuthGuard from "../../../components/AuthGuard"
 
@@ -51,91 +48,6 @@ const Incription = () => {
   const [postIncriptionCompetitor] = usePostInscriptionCompetitorMutation()
   const [generatePaymentByInscription] = useGeneratePaymentByInscriptionMutation()
   const [validatePaymentFromImage] = useValidatePaymentFromImageMutation()
-
-  const templateHeaders = [
-    "nombre",
-    "apellido",
-    "ci",
-    "fecha_nacimiento",
-    "telefono",
-    "email",
-    "colegio_id",
-    "curso",
-    "tutor_ids",
-    "olimpiada_id",
-    "area_level_grade_ids",
-  ]
-  const templateExample = [
-    "Juan",
-    "Pérez López",
-    "12345678",
-    "2005-10-12",
-    "77123456",
-    "juan@example.com",
-    "361",
-    "1ro de primaria",
-    "1",
-    selectedOlympic?.id || "4",
-    "84",
-  ]
-
-  const excelProcessor = useExcelProcessor({
-    processRecord: async (record) => {
-      const competitorPayload = {
-        name: record.nombre,
-        last_name: record.apellido,
-        ci: record.ci,
-        birthday: record.fecha_nacimiento,
-        phone: record.telefono,
-        email: record.email,
-        school_id: Number.parseInt(record.colegio_id) || "",
-        curso: record.curso,
-        guardian_ids: record.tutor_ids
-          .toString()
-          .split(",")
-          .map((id) => Number.parseInt(id.trim())),
-        olympic_id: Number.parseInt(record.olimpiada_id) || selectedOlympic?.id,
-        area_level_grade_ids: record.area_level_grade_ids
-          .toString()
-          .split(",")
-          .map((id) => Number.parseInt(id.trim())),
-      }
-      const response = await postIncriptionCompetitor(competitorPayload).unwrap()
-      return response
-    },
-  })
-
-  const handleProcessRecords = (records, callbacks) => {
-    excelProcessor.processRecords(records)
-
-    if (callbacks && callbacks.onProgress) {
-      const progressInterval = setInterval(() => {
-        if (excelProcessor.isProcessing) {
-          callbacks.onProgress({
-            current: excelProcessor.processedRecords,
-            total: excelProcessor.totalRecords,
-            percentage: excelProcessor.progress,
-          })
-        } else {
-          clearInterval(progressInterval)
-
-          if (callbacks.onComplete) {
-            callbacks.onComplete({
-              total: excelProcessor.totalRecords,
-              success: excelProcessor.successList.length,
-              failed: excelProcessor.failedList.length,
-              successList: excelProcessor.successList,
-              failedList: excelProcessor.failedList,
-            })
-          }
-        }
-      }, 500)
-    }
-  }
-
-  const handleExportResults = () => {
-    excelProcessor.exportResults("inscripciones_competidores")
-  }
 
   const handleGuardianSubmit = async (data) => {
     try {
@@ -191,13 +103,7 @@ const Incription = () => {
         message: "Generando boleta de pago...",
       })
 
-      console.log("=== GENERANDO BOLETA DE PAGO ===")
-      console.log("Inscription ID:", inscriptionId)
-
       const paymentResponse = await generatePaymentByInscription(inscriptionId).unwrap()
-
-      console.log("=== BOLETA GENERADA ===")
-      console.log("Payment Response:", paymentResponse)
 
       setPaymentFlow((prev) => ({
         ...prev,
@@ -245,12 +151,11 @@ const Incription = () => {
       const formData = new FormData()
       formData.append("image", paymentFlow.paymentFile)
 
-      console.log("=== VALIDANDO PAGO ===")
-      console.log("File:", paymentFlow.paymentFile.name)
+     
 
       const validationResponse = await validatePaymentFromImage(formData).unwrap()
 
-      console.log("=== PAGO VALIDADO ===")
+     // console.log("=== PAGO VALIDADO ===")
       console.log("Validation Response:", validationResponse)
 
       setPaymentFlow((prev) => ({
@@ -305,11 +210,7 @@ const Incription = () => {
         message: "Creando competidor e inscripción...",
       })
 
-      console.log("=== DATOS RECIBIDOS EN handleCompetitorSubmit ===")
-      console.log("Datos transformados:", data)
-      console.log("Olimpiada seleccionada:", selectedOlympic)
-
-      // USAR EL FLUJO UNIFICADO - Enviar TODOS los campos al CompetitorController
+  
       const competitorData = {
         name: data.name,
         last_name: data.last_name,
@@ -320,12 +221,11 @@ const Incription = () => {
         school_id: data.school_id,
         curso: data.curso,
         guardian_ids: data.guardian_ids,
-        olympic_id: selectedOlympic.id, // INCLUIR olympic_id
-        area_level_grade_ids: data.area_level_grade_ids, // INCLUIR area_level_grade_ids
+        olympic_id: selectedOlympic.id, 
+        area_level_grade_ids: data.area_level_grade_ids,
       }
 
-      console.log("=== DATOS COMPLETOS PARA EL BACKEND ===")
-      console.log(competitorData)
+      
 
       const response = await postIncriptionCompetitor(competitorData).unwrap()
 
@@ -436,11 +336,6 @@ const Incription = () => {
         competitorData={competitorData}
         loadingModal={loadingModal}
         modal={modal}
-        templateHeaders={templateHeaders}
-        templateExample={templateExample}
-        excelProcessor={excelProcessor}
-        handleProcessRecords={handleProcessRecords}
-        handleExportResults={handleExportResults}
         handleGuardianSubmit={handleGuardianSubmit}
         handleCompetitorSubmit={handleCompetitorSubmit}
         handleBack={handleBack}

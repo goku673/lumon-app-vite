@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
 import PersonAddIcon from "@mui/icons-material/PersonAdd"
@@ -67,13 +65,13 @@ const GuardianRegister = ({ onSubmit, initialData }) => {
     }))
   }
 
-  // 🔥 Función para validar datos del formulario manual
+  
   const isManualFormValid = () => {
     const { apellidoPaterno, apellidoMaterno, nombres, email, celular, ci, tipo } = formData
     return apellidoPaterno && apellidoMaterno && nombres && email && celular && ci && tipo
   }
 
-  // 🔥 Función para registrar tutor individual
+  
   const handleRegisterGuardian = async (e) => {
     e.preventDefault()
 
@@ -93,11 +91,11 @@ const GuardianRegister = ({ onSubmit, initialData }) => {
         type: formData.tipo,
       }
 
-      console.log("🚀 Registrando tutor:", guardianData)
+      
 
       // Crear el tutor
       const result = await createGuardian(guardianData).unwrap()
-      console.log("✅ Tutor creado:", result)
+    
 
       // Limpiar formulario manual
       setFormData((prev) => ({
@@ -120,7 +118,7 @@ const GuardianRegister = ({ onSubmit, initialData }) => {
         message: `Tutor "${result.name} ${result.last_name}" registrado exitosamente. Ahora puedes seleccionarlo en la lista.`,
       })
     } catch (error) {
-      console.error("❌ Error creando tutor:", error)
+      console.error("Error creando tutor:", error)
       setSuccessModal({
         isOpen: true,
         message: `Error al registrar tutor: ${error.data?.message || error.message || "Error desconocido"}`,
@@ -128,7 +126,7 @@ const GuardianRegister = ({ onSubmit, initialData }) => {
     }
   }
 
-  // 🔥 Función para continuar con tutores seleccionados
+ 
   const handleContinue = (e) => {
     e.preventDefault()
 
@@ -175,11 +173,11 @@ const GuardianRegister = ({ onSubmit, initialData }) => {
         {formData.selectedGuardians.length > 0 ? (
           <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
             <Text
-              text={`✅ Has seleccionado ${formData.selectedGuardians.length} tutor(es). Puedes continuar o registrar más tutores.`}
+              text={` Has seleccionado ${formData.selectedGuardians.length} tutor(es). Puedes continuar o registrar más tutores.`}
               className="text-green-700 font-medium"
             />
             <div className="mt-2">
-              {formData.selectedGuardians.map((guardian, index) => (
+              {formData.selectedGuardians.map((guardian,) => (
                 <span
                   key={guardian.id}
                   className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded mr-2 mb-1"
@@ -204,7 +202,7 @@ const GuardianRegister = ({ onSubmit, initialData }) => {
             </FormGroup>
           ))}
 
-          {/* 🔥 Botones separados para diferentes acciones */}
+          
           <div className="space-y-4">
             {/* Botón para registrar tutor individual */}
             <Button
