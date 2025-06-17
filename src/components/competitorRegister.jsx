@@ -14,11 +14,21 @@ import FormGroup from "./formGroup"
 import Button from "../common/button"
 import RenderComponent from "./RenderComponent"
 import { useSelector } from "react-redux"
+import { useGetUserQuery } from "../app/redux/services/authApi"
 
 const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = [] }) => {
   const selectedOlympic = useSelector((state) => state.olympic.selectedOlympic)
 
-  // Obtener detalles de la olimpiada seleccionada (incluyendo sus áreas)
+  
+  const [token, setToken] = useState(null)
+  const { data: user } = useGetUserQuery(token, { skip: !token })
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token')
+    setToken(storedToken)
+  }, [])
+
+ 
   const {
     data: olympicDetails,
     isLoading: isOlympicLoading,
@@ -47,7 +57,6 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
   const [selectedGrades, setSelectedGrades] = useState(initialData.area_level_grades || [])
   const [validationErrors, setValidationErrors] = useState([])
 
-  // Queries para obtener datos
   const { data: schools = [], isLoading: isSchoolsLoading, isError: isSchoolsError } = useGetSchoolsQuery()
   const { data: grades = [], isLoading: isGradesLoading, isError: isGradesError } = useGetGradesQuery()
   const {
@@ -57,7 +66,7 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
   } = useGetDepartmentsQuery()
   const { data: provinces = [], isLoading: isProvincesLoading, isError: isProvincesError } = useGetProvincesQuery()
 
-  // Usar las áreas de la olimpiada seleccionada en lugar de todas las áreas
+ 
   const flattenedGrades =
     olympicDetails?.areas_levels_grades?.map((area) => ({
       id: area.id,
@@ -68,7 +77,6 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
       status: area.status,
     })) || []
 
-  // Filtrar solo las áreas activas
   const activeGrades = flattenedGrades.filter((grade) => grade.status === "active")
 
   const dataProviders = {
@@ -89,7 +97,6 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
     isAreaLevelGradesError: isOlympicError,
   }
 
-  // 🔥 Función mejorada para manejar cambios en el formulario
   const handleChange = (e) => {
     const { name, value } = e.target
 
@@ -148,16 +155,14 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    // Validar que hay una olimpiada seleccionada
     if (!selectedOlympic?.id) {
       setValidationErrors(["Debe seleccionar una olimpiada antes de registrar un competidor"])
       return
     }
 
-    // Transformar los datos al formato del backend
     const transformedData = transformCompetitorDataForBackend(formData, guardians, selectedOlympic?.id)
 
-    // Validar los datos transformados
+
     const validation = validateTransformedData(transformedData)
 
     if (!validation.isValid) {
@@ -168,16 +173,16 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
 
   
 
-    // Enviar los datos transformados
+    
     onSubmit(transformedData)
   }
 
-  //  Effect para debug del curso
+ 
   useEffect(() => {
     console.log("🎓 Curso actualizado en formData:", formData.curso)
   }, [formData.curso])
 
-  //  Effect para sincronizar estados cuando cambian los datos iniciales
+  
   useEffect(() => {
     if (initialData.colegio && !selectedSchool) {
       setSelectedSchool(initialData.colegio)
@@ -187,7 +192,7 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
     }
   }, [initialData, selectedSchool, selectedGrades.length])
 
-  // Mostrar mensaje si no hay olimpiada seleccionada
+
   if (!selectedOlympic?.id) {
     return (
       <FormContainer className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8 border border-gray-100">
@@ -206,12 +211,18 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
     )
   }
 
+
+  console.log("🔍 Debug valores que podrían causar el 0:");
+  console.log("activeGrades.length:", activeGrades.length);
+  console.log("validationErrors.length:", validationErrors.length);
+  console.log("selectedGrades.length:", selectedGrades.length);
+  console.log("schools.length:", schools.length);
+
   return (
     <FormContainer className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8 border border-gray-100">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800 border-b pb-4">Registro de Competidor</h2>
 
-        {/* Información de la olimpiada seleccionada */}
         <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <h3 className="font-semibold text-blue-800">Olimpiada Seleccionada:</h3>
           <p className="text-blue-700">{selectedOlympic.name}</p>
@@ -219,7 +230,6 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
         </div>
       </div>
 
-      {/* Mostrar errores de validación */}
       {validationErrors.length > 0 && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
           <h3 className="text-red-800 font-semibold mb-2">Errores de validación:</h3>
@@ -231,7 +241,7 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
         </div>
       )}
 
-      {/* Mostrar mensaje si no hay áreas disponibles */}
+
       {olympicDetails && activeGrades.length === 0 && (
         <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
           <h3 className="text-yellow-800 font-semibold mb-2">Sin áreas disponibles</h3>
@@ -276,27 +286,28 @@ const CompetitorRegister = ({ onSubmit, onBack, initialData = {}, guardians = []
         </div>
       </FormContent>
 
-      {/* 🔥 Debug panel mejorado */}
-      <div className="mt-8 p-4 bg-gray-100 rounded-md">
-        <h3 className="font-bold mb-2">🐛 Debug - Estado actual del formulario:</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <h4 className="font-semibold">Curso seleccionado:</h4>
-            <p className="bg-white p-2 rounded border">{formData.curso || "No seleccionado"}</p>
-          </div>
-          <div>
-            <h4 className="font-semibold">Áreas seleccionadas:</h4>
-            <p className="bg-white p-2 rounded border">{selectedGrades.length} área(s)</p>
-          </div>
-        </div>
+  {Boolean(user?.is_admin) && (
+    <div className="mt-8 p-4 bg-gray-100 rounded-md">
+            <h3 className="font-bold mb-2">🐛 Debug - Estado actual del formulario:</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <h4 className="font-semibold">Curso seleccionado:</h4>
+                <p className="bg-white p-2 rounded border">{formData.curso || "No seleccionado"}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold">Áreas seleccionadas:</h4>
+                <p className="bg-white p-2 rounded border">{selectedGrades.length} área(s)</p>
+              </div>
+            </div>
 
-        <details className="mt-4">
-          <summary className="cursor-pointer font-semibold">Ver datos completos</summary>
-          <pre className="text-xs overflow-auto mt-2 bg-white p-2 rounded border">
-            {JSON.stringify({ formData, selectedGrades, activeGrades: activeGrades.length }, null, 2)}
-          </pre>
-        </details>
-      </div>
+            <details className="mt-4">
+              <summary className="cursor-pointer font-semibold">Ver datos completos</summary>
+              <pre className="text-xs overflow-auto mt-2 bg-white p-2 rounded border">
+                {JSON.stringify({ formData, selectedGrades, activeGrades: activeGrades.length }, null, 2)}
+              </pre>
+            </details>
+          </div>
+        )}
     </FormContainer>
   )
 }

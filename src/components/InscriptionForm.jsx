@@ -1,8 +1,7 @@
 "use client"
 
 import OlympicsList from "./olympicList"
-// ✅ CAMBIO: Renombrar el componente Text para evitar conflictos
-import Title from "../common/title"
+import Title from "../common/Title"
 import GuardianRegister from "./guardientRegister"
 import CompetitorRegister from "./competitorRegister"
 import Modal from "./modal/modal"
@@ -158,7 +157,6 @@ const InscriptionForm = ({
             disabled={isProcessingBulk}
           />
 
-          {/* Información sobre el Excel */}
           <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h4 className="font-semibold text-blue-800 mb-2">📋 Información del Excel:</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700">
@@ -234,7 +232,6 @@ const InscriptionForm = ({
           </div>
         </div>
 
-        {/* Modal de carga en progreso */}
         <Modal
           isOpen={isProcessingBulk || loadingModal.isOpen}
           title={isProcessingBulk ? "Procesando Carga Masiva" : loadingModal.title}
@@ -243,7 +240,6 @@ const InscriptionForm = ({
         >
           <div className="flex flex-col items-center justify-center py-4">
             <CircularProgress color="error" className="mb-4" />
-            {/* ✅ CAMBIO: Usar elemento HTML nativo en lugar de componente Text */}
             <p className="text-gray-700">
               {isProcessingBulk ? "Procesando competidores y generando boleta de pago..." : loadingModal.message}
             </p>
@@ -261,7 +257,7 @@ const InscriptionForm = ({
           onSecondaryClick={modal.onSecondaryClick}
           showSecondaryButton={modal.showSecondaryButton}
         >
-          {/* ✅ CAMBIO: Usar elemento HTML nativo */}
+          
           <p className="text-gray-700">{modal.message}</p>
         </Modal>
 

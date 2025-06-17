@@ -4,7 +4,7 @@ import { useState } from "react"
 import Modal from "./modal/modal"
 import Button from "@mui/material/Button"
 import FileUploader from "../common/fileUploader"
-import Title from "../common/title"
+import Title from "../common/Title"
 import AppText from "../common/appText" // Cambiado aquí
 import ReceiptIcon from "@mui/icons-material/Receipt"
 import PaymentIcon from "@mui/icons-material/Payment"

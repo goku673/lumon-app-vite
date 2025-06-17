@@ -17,7 +17,7 @@ import SearchIcon from "@mui/icons-material/Search"
 import ButtonSE from "../common/ButtonSE"
 import Button from "../common/button"
 import Input from "../common/input"
-import Title from "../common/title"
+import Title from "../common/Title"
 import { useDispatch, useSelector } from "react-redux"
 import { setSelectedOlympic, clearSelectedOlympic } from "../app/redux/slice/olympicsSlice"
 

@@ -5,7 +5,7 @@ import Input from "../common/input";
 import Label from "../common/label";
 import FormContainer from "../common/formContainer";
 import FormContent from "../common/formContent";
-import Title from "../common/title";
+import Title from "../common/Title";
 import Text from "../common/text";
 import { Person, Email, Lock, Visibility, VisibilityOff } from "@mui/icons-material";
 import { useRegisterMutation } from "../app/redux/services/authApi";

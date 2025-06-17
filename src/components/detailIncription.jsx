@@ -112,17 +112,13 @@ const DetailInscriptionComponent = () => {
   }
 
   const getCompetitorId = () => {
-    console.log("=== DEBUG getCompetitorId ===")
-    console.log("Competitor completo:", competitor)
-    console.log("Competitor ID:", competitor?.id)
+
     return competitor?.id || null
   }
 
   const handleGeneratePayment = async () => {
     const competitorId = getCompetitorId()
 
-    console.log("=== INICIANDO GENERACIÓN DE BOLETA ===")
-    console.log("Competitor ID obtenido:", competitorId)
 
     if (!competitorId) {
       setModal({
@@ -509,7 +505,9 @@ const DetailInscriptionComponent = () => {
                   </div>
                 </div>
 
-                {/* 🎯 BOTÓN CORREGIDO: Usar getCompetitorId() en lugar de getInscriptionId() */}
+                
+                {/* SECCIÓN COMENTADA - Generar Boleta de Pago */}
+                {/* 
                 {competitor && (
                   <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                     <div className="flex items-center justify-between">
@@ -519,7 +517,8 @@ const DetailInscriptionComponent = () => {
                       </div>
                       <Button
                         onClick={handleGeneratePayment}
-                        disabled={paymentFlow.isGeneratingPayment || !getCompetitorId()}
+                        disabled={true}
+                        // disabled={paymentFlow.isGeneratingPayment || !getCompetitorId()}
                         className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <PaymentIcon className="mr-2" />
@@ -528,6 +527,7 @@ const DetailInscriptionComponent = () => {
                     </div>
                   </div>
                 )}
+                */}
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <DetailField
@@ -617,6 +617,8 @@ const DetailInscriptionComponent = () => {
           <p className="text-gray-700">{modal.message}</p>
         </Modal>
 
+        {/* MODAL DE PAGO COMENTADO */}
+        {/* 
         <PaymentModal
           isOpen={paymentFlow?.showPaymentModal}
           paymentOrder={paymentFlow?.paymentOrder}
@@ -628,6 +630,7 @@ const DetailInscriptionComponent = () => {
           selectedFile={paymentFlow?.paymentFile}
           isValidating={paymentFlow?.isValidatingPayment}
         />
+        */}
       </div>
     </div>
   )

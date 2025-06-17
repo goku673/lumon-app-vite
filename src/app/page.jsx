@@ -19,7 +19,7 @@ const Home = () => {
     <AuthGuard>
     <div className="min-h-screen">
       <VideoHelp 
-        videoId="dQw4w9WgXcQ"
+        videoId="KXBTinpm2Yc"
         title={`Bienvenido ${user?.name || "Usuario"} a las Olimpiadas de San Simon`}
         description="Este video te guiará a través de las principales funciones de nuestra plataforma para que puedas aprovecharla al máximo."
       />
